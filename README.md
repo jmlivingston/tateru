@@ -15,7 +15,7 @@ npx nx run-many -t test
 ## Documentation
 
 ```sh
-npx nx run @tateru/docs:dev
+npm run docs
 npx nx run @tateru/docs:build
 npx nx run @tateru/docs:preview
 ```
