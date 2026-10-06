@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 env:
-  DOCS_PUBLISH_ENABLED: 'true'
+  DOCS_PUBLISH_ENABLED: 'false'
 
 jobs:
   build:

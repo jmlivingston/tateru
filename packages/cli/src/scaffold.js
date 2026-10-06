@@ -114,7 +114,10 @@ export const scaffoldReactWorkspace = ({ cwd, features }) => {
 
   writeJson(pkgPath, existing ? mergePackageJson(template, existing) : template);
   const { written, skipped } = copyTemplate({
-    names: [base, ...enabled.map((feature) => `${content.react.template}/features/${feature}`)],
+    names: [
+      base,
+      ...enabled.flatMap((feature) => [`${content.react.template}/features/${feature}`, `common/features/${feature}`]),
+    ],
     target: cwd,
     vars,
   });

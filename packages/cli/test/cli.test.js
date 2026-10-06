@@ -254,6 +254,7 @@ test('every feature combination renders valid files for exactly the chosen tools
     const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
     assert.deepEqual(JSON.parse(readFileSync(join(dir, 'tateru.json'), 'utf8')), { features });
     assert.equal(existsSync(join(dir, 'prettier.config.js')), features.prettier);
+    assert.equal(existsSync(join(dir, '.prettierignore')), features.prettier);
     assert.equal('prettier' in pkg.devDependencies, features.prettier);
     assert.equal('format' in pkg.scripts, features.prettier);
     assert.equal('format' in project.targets, features.prettier);
@@ -271,6 +272,8 @@ test('every feature combination renders valid files for exactly the chosen tools
     );
     assert.equal(existsSync(join(dir, 'scripts/storybookConfig.js')), features.storybook);
     assert.equal(existsSync(join(dir, 'vite.config.js')), features.tests);
+    assert.equal(existsSync(join(dir, 'scripts/vitest.config.js')), features.tests);
+    assert.equal(existsSync(join(dir, 'scripts/vitestSetup.js')), features.tests);
     assert.equal('vitest' in pkg.devDependencies, features.tests);
     assert.equal('test' in project.targets, features.tests);
     assert.equal(existsSync(join(dir, 'scripts/viteConfig.test.js')), features.tests);
