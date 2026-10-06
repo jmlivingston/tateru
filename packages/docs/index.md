@@ -11,3 +11,5 @@ or TypeScript (Angular uses TypeScript) and opt into formatting, linting and uni
 Storybook is available for all except Solid.
 
 [Get started](./getting-started.md)
+
+[Explore functionality and the complete combination matrix](./functionality.md)

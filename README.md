@@ -2,6 +2,62 @@
 
 Nx workspace for the tateru tools.
 
+Generate React, Angular, Vue, Svelte or Solid component libraries:
+
+```sh
+npx jmlivingston/tateru
+```
+
+Run in an empty project directory to create a workspace, or in an existing
+tateru workspace to add a component. Angular requires TypeScript; other frameworks
+support JavaScript or TypeScript. Storybook is offered for all except Solid.
+
+## CLI workflow
+
+```mermaid
+flowchart TD
+  Start["Run tateru in the target directory"] --> Detect["Detect workspace and package manager"]
+  Detect --> Framework["Choose framework"]
+  Framework --> Valid{"Existing Nx workspace has generators<br/>and framework matches?"}
+  Valid -- "No" --> Error["Report error and stop"]
+  Valid -- "Yes, or no existing Nx workspace" --> Manager{"Package manager detected?"}
+  Manager -- "No" --> ChooseManager["Choose npm, yarn, pnpm or bun"]
+  Manager -- "Yes" --> Angular{"Angular?"}
+  ChooseManager --> Angular
+  Angular -- "Yes" --> TS["Use TypeScript"]
+  Angular -- "No" --> Language{"Source language detected?"}
+  Language -- "No or ambiguous" --> ChooseLanguage["Choose TypeScript or JavaScript"]
+  Language -- "Yes" --> Existing{"Existing Nx workspace?"}
+  TS --> Existing
+  ChooseLanguage --> Existing
+  Existing -- "Yes" --> Reuse["Reuse saved tooling choices"]
+  Existing -- "No" --> Tools["Choose Prettier, ESLint, Stylelint and unit tests"]
+  Tools --> Solid{"Solid?"}
+  Solid -- "No" --> Storybook["Choose whether to add Storybook"]
+  Solid -- "Yes" --> Name["Enter and validate component name"]
+  Storybook --> Name
+  Reuse --> Name
+  Name --> New{"New workspace?"}
+  New -- "Yes" --> Scaffold["Merge package.json, copy templates<br/>and save framework and tooling choices"]
+  New -- "No" --> InstallNeeded{"Nx installation missing?"}
+  Scaffold --> Install["Install dependencies"]
+  InstallNeeded -- "Yes" --> Install
+  InstallNeeded -- "No" --> Generate["Run the local Nx component generator"]
+  Install --> Installed{"Installation succeeded?"}
+  Installed -- "No" --> Error
+  Installed -- "Yes" --> Generate
+  Generate --> Generated{"Generation succeeded?"}
+  Generated -- "No" --> Error
+  Generated -- "Yes" --> Done["Component ready in packages/Name"]
+```
+
+Cancelling any prompt exits without generating files. Existing component folders
+are rejected. New workspaces preserve existing files but merge `package.json`,
+switch it to ESM and scope its name when needed.
+
+See the [functionality and combination matrix](packages/docs/functionality.md)
+for the supported options and current limitations.
+
 | Package                       | Description                                    |
 | ----------------------------- | ---------------------------------------------- |
 | [@tateru/cli](packages/cli)   | Interactive component and workspace scaffolder |

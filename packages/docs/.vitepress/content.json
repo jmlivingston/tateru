@@ -11,7 +11,8 @@
         "text": "Guide",
         "items": [
           { "text": "Introduction", "link": "/" },
-          { "text": "Getting started", "link": "/getting-started" }
+          { "text": "Getting started", "link": "/getting-started" },
+          { "text": "Functionality and combinations", "link": "/functionality" }
         ]
       }
     ]
