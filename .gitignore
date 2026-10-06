@@ -9,3 +9,4 @@ coverage/
 .vscode/
 .nx/
 dist/
+packages/docs/.vitepress/cache/

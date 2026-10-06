@@ -1,0 +1,19 @@
+{
+  "title": "tateru",
+  "description": "Scaffold component libraries with Nx.",
+  "themeConfig": {
+    "nav": [
+      { "text": "Guide", "link": "/getting-started" },
+      { "text": "GitHub", "link": "https://github.com/jmlivingston/tateru" }
+    ],
+    "sidebar": [
+      {
+        "text": "Guide",
+        "items": [
+          { "text": "Introduction", "link": "/" },
+          { "text": "Getting started", "link": "/getting-started" }
+        ]
+      }
+    ]
+  }
+}
