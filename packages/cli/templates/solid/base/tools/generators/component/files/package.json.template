@@ -1,0 +1,24 @@
+{
+  "name": "<%= npmScope %>/<%= fileName %>",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "exports": {
+    ".": {
+<% if (language === 'typescript') { %>
+      "types": "./index.d.ts",
+<% } %>
+      "import": "./index.js",
+      "require": "./index.cjs"
+    },
+    "./style.css": "./index.css",
+    "./*.css": "./*.css"
+  },
+  "files": ["index.js", "index.cjs", "index.css", "*.d.ts"],
+  "peerDependencies": {
+    "solid-js": "^1.9.16"
+  },
+  "sideEffects": ["*.css"],
+  "license": "MIT"
+}

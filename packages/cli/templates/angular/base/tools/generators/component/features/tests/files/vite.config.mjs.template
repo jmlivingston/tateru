@@ -1,0 +1,14 @@
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/vite-plugin-angular';
+
+export default defineConfig({
+  root: fileURLToPath(new URL('.', import.meta.url)),
+  plugins: [angular()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['../../scripts/test-setup.js'],
+    include: ['src/**/*.spec.ts'],
+  },
+});

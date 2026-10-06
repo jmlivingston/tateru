@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "workspaces": ["packages/*"],
   "generators": "./tools/generators/generators.json",
   "main": "index.js",
   "scripts": {

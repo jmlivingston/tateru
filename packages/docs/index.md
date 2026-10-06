@@ -3,9 +3,11 @@
 Scaffold component libraries with Nx.
 
 ::: warning Work in progress
-React is the current focus. Other frameworks have basic scaffolding while their generators are developed.
+The CLI and documentation are under active development.
 :::
 
-Choose JavaScript or TypeScript and opt into Prettier, ESLint, Stylelint, Storybook and unit tests.
+Generate React, Angular, Vue, Svelte or Solid component libraries. Choose JavaScript
+or TypeScript (Angular uses TypeScript) and opt into formatting, linting and unit tests.
+Storybook is available for all except Solid.
 
 [Get started](./getting-started.md)

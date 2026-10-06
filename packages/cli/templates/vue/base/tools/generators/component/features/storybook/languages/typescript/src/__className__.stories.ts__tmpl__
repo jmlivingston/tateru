@@ -1,0 +1,14 @@
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import <%= className %> from './<%= className %>.vue';
+
+const meta = {
+  title: '<%= className %>',
+  component: <%= className %>,
+  tags: ['autodocs'],
+} satisfies Meta<typeof <%= className %>>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};

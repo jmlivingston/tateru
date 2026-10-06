@@ -1,0 +1,9 @@
+import { render, screen } from '@testing-library/svelte';
+import <%= className %> from './<%= className %>.svelte';
+
+describe('<%= className %>', () => {
+  it('renders its component label', () => {
+    render(<%= className %>);
+    expect(screen.getByText('<%= className %> Component')).toBeTruthy();
+  });
+});

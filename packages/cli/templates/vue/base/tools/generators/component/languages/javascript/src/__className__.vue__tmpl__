@@ -1,0 +1,7 @@
+<template>
+  <div class="<%= fileName %>">
+    <%= className %> Component
+  </div>
+</template>
+
+<style src="./<%= className %>.css"></style>

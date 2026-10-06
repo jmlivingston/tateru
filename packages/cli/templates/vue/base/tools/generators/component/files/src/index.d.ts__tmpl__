@@ -1,0 +1,4 @@
+import type { DefineComponent } from 'vue';
+
+declare const <%= className %>: DefineComponent;
+export default <%= className %>;

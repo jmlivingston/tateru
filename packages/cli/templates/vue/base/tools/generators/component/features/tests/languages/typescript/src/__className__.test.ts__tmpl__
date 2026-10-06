@@ -1,0 +1,9 @@
+import { render, screen } from '@testing-library/vue';
+import <%= className %> from './<%= className %>.vue';
+
+describe('<%= className %>', () => {
+  it('renders its component label', () => {
+    render(<%= className %>);
+    expect(screen.getByText('<%= className %> Component')).toBeTruthy();
+  });
+});

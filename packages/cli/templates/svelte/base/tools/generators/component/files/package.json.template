@@ -1,0 +1,21 @@
+{
+  "name": "<%= npmScope %>/<%= fileName %>",
+  "version": "0.0.1",
+  "main": "./index.js",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.js"
+    },
+    "./style.css": "./<%= className %>.css",
+    "./*.css": "./*.css"
+  },
+  "files": ["index.js", "index.mjs", "index.d.ts", "*.css"],
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  },
+  "license": "MIT"
+}

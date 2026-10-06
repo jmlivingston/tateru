@@ -1,0 +1,12 @@
+{
+  "name": "<%= npmScope %>/<%= fileName %>",
+  "version": "1.0.0",
+  "exports": {
+    ".": "./styles.css",
+    "./style.css": "./styles.css",
+    "./*.css": "./*.css"
+  },
+  "files": ["styles.css"],
+  "sideEffects": ["*.css"],
+  "license": "MIT"
+}

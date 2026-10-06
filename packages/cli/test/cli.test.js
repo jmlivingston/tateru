@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import { content, fill } from '../src/content.js';
 import { detectLanguage, detectPackageManager, detectWorkspace, hasComponentsDir } from '../src/detect.js';
 import { toKebab, toPascal, isValidName } from '../src/names.js';
@@ -12,11 +21,21 @@ import {
   hasGenerators,
   scaffoldMonorepo,
   scaffoldReactWorkspace,
-  writeComponent,
+  scaffoldWorkspace,
+  supportedFeatures,
+  readWorkspaceFramework,
 } from '../src/scaffold.js';
 
 const allFeatures = Object.fromEntries(Object.keys(content.features).map((feature) => [feature, true]));
-const tmp = () => mkdtempSync(join(tmpdir(), 'tateru-'));
+const roots = [];
+const tmp = () => {
+  const root = mkdtempSync(join(tmpdir(), 'tateru-'));
+  roots.push(root);
+  return root;
+};
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true });
+});
 
 test('name helpers', () => {
   assert.equal(toPascal('my button'), 'MyButton');
@@ -81,29 +100,6 @@ test('preserves an existing package.json', () => {
   assert.equal(pkg.name, 'keep');
   assert.deepEqual(pkg.scripts, { a: 'b' });
   assert.deepEqual(pkg.workspaces, ['packages/*']);
-});
-
-test('writes a component with a matching css file for every framework', () => {
-  for (const framework of Object.keys(content.frameworks)) {
-    if (content.frameworks[framework].workspace) continue;
-    const cwd = tmp();
-    const { target, written } = writeComponent({
-      cwd,
-      dir: 'components',
-      framework,
-      name: 'Fancy Button',
-      asPackage: framework === 'vue',
-    });
-    assert.ok(
-      written.some((file) => file.endsWith('.css')),
-      framework,
-    );
-    for (const file of written) assert.ok(existsSync(join(target, file)));
-    assert.equal(written.includes('package.json'), framework === 'vue');
-    for (const file of written) {
-      assert.ok(!readFileSync(join(target, file), 'utf8').includes('{{'), file);
-    }
-  }
 });
 
 test('creates package.json only when missing', () => {
@@ -177,7 +173,7 @@ test('keeps an existing scoped root name', () => {
 test('builds the nx generate arguments with a PascalCase name', () => {
   assert.deepEqual(generateArgs({ rootName: '@acme/root', name: 'fancy button', language: 'typescript' }), [
     'generate',
-    '@acme/root:component',
+    './tools/generators/generators.json:component',
     '--name=FancyButton',
     '--language=typescript',
   ]);
@@ -233,6 +229,77 @@ test('fill keeps or drops sections by variable', () => {
   assert.equal(fill(text, { x: false, n: 1 }), 'a\nno\nz\n');
 });
 
+test('detects TypeScript and JavaScript in Vue and Svelte scripts', () => {
+  for (const extension of ['vue', 'svelte']) {
+    for (const language of ['typescript', 'javascript']) {
+      const dir = tmp();
+      writeFile(
+        dir,
+        `packages/Button/src/Button.${extension}`,
+        `<script${language === 'typescript' ? ' lang="ts"' : ''}>\n</script>`,
+      );
+      assert.equal(detectLanguage(dir, { dir: 'packages', useProjectConfig: false }), language);
+    }
+  }
+});
+
+test('Solid excludes Storybook and Angular requires TypeScript', () => {
+  assert.ok(!supportedFeatures('solid').includes('storybook'));
+  assert.equal(content.frameworks.angular.language, 'typescript');
+  assert.throws(() => scaffoldWorkspace({ cwd: tmp(), framework: 'solid', features: allFeatures }), /does not support/);
+});
+
+test('pnpm scaffolding creates a packages workspace and records the framework', () => {
+  const dir = tmp();
+  scaffoldWorkspace({ cwd: dir, framework: 'react', features: allFeatures, packageManager: 'pnpm' });
+  assert.equal(readWorkspaceFramework(dir), 'react');
+  assert.deepEqual(detectWorkspace(dir), { packageManager: 'pnpm', packagesDir: 'packages' });
+});
+
+test('recognizes legacy React workspaces without a framework field', () => {
+  const dir = tmp();
+  writeFile(dir, 'tateru.json', JSON.stringify({ features: allFeatures }));
+  writeFile(dir, 'package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
+  assert.equal(readWorkspaceFramework(dir), 'react');
+});
+
+test('all frameworks render valid workspaces for every supported feature combination', () => {
+  for (const framework of Object.keys(content.frameworks)) {
+    const supported = supportedFeatures(framework);
+    for (let mask = 0; mask < 1 << supported.length; mask++) {
+      const features = Object.fromEntries(Object.keys(content.features).map((feature) => [feature, false]));
+      supported.forEach((feature, index) => {
+        features[feature] = Boolean(mask & (1 << index));
+      });
+      const dir = tmp();
+      scaffoldWorkspace({ cwd: dir, framework, features });
+      assert.equal(readWorkspaceFramework(dir), framework);
+      assert.deepEqual(JSON.parse(readFileSync(join(dir, 'tateru.json'), 'utf8')), { framework, features });
+      for (const file of readdirSync(dir, { recursive: true })) {
+        if (statSync(join(dir, file)).isDirectory()) continue;
+        const body = readFileSync(join(dir, file), 'utf8');
+        if (file.endsWith('.json')) JSON.parse(body);
+        if (!file.includes('tools/generators/') && !file.endsWith('.template') && !file.endsWith('__tmpl__')) {
+          assert.ok(!/\{\{[#^/]?\w+\}\}/.test(body), `${framework}: ${file}`);
+        }
+      }
+      const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+      assert.equal('format' in pkg.scripts, features.prettier);
+      assert.equal('lint' in pkg.scripts, features.eslint);
+      assert.equal('lint-style' in pkg.scripts, features.stylelint);
+      assert.equal('test' in pkg.scripts, features.tests);
+      assert.equal('start' in pkg.scripts, features.storybook);
+      assert.equal('prettier' in pkg.devDependencies, features.prettier);
+      assert.equal('eslint' in pkg.devDependencies, features.eslint);
+      assert.equal('stylelint' in pkg.devDependencies, features.stylelint);
+      assert.equal('vitest' in pkg.devDependencies, features.tests);
+      assert.equal('storybook' in pkg.devDependencies, features.storybook);
+      assert.ok(existsSync(join(dir, 'tools/generators/component/index.js')));
+      assert.ok(existsSync(join(dir, 'tools/generators/css/index.js')));
+    }
+  }
+});
+
 test('every feature combination renders valid files for exactly the chosen tools', () => {
   const keys = Object.keys(content.features);
   for (let mask = 0; mask < 1 << keys.length; mask++) {
@@ -252,7 +319,7 @@ test('every feature combination renders valid files for exactly the chosen tools
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
     const nx = JSON.parse(readFileSync(join(dir, 'nx.json'), 'utf8'));
     const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
-    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'tateru.json'), 'utf8')), { features });
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'tateru.json'), 'utf8')), { framework: 'react', features });
     assert.equal(existsSync(join(dir, 'prettier.config.js')), features.prettier);
     assert.equal(existsSync(join(dir, '.prettierignore')), features.prettier);
     assert.equal('prettier' in pkg.devDependencies, features.prettier);

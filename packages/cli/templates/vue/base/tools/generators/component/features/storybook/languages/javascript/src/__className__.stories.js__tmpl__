@@ -1,0 +1,9 @@
+import <%= className %> from './<%= className %>.vue';
+
+export default {
+  title: '<%= className %>',
+  component: <%= className %>,
+  tags: ['autodocs'],
+};
+
+export const Default = {};

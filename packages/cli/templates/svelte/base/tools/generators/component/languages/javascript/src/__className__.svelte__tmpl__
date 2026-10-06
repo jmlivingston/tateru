@@ -1,0 +1,7 @@
+<script>
+  import './<%= className %>.css';
+</script>
+
+<div class="<%= fileName %>">
+  <%= className %> Component
+</div>

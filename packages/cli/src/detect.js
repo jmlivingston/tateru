@@ -73,6 +73,14 @@ const scanLanguages = (dir, found = new Set()) => {
     if (entry.isDirectory()) {
       if (!entry.name.startsWith('.') && !SKIPPED_DIRECTORIES.has(entry.name))
         scanLanguages(join(dir, entry.name), found);
+    } else if (['.vue', '.svelte'].includes(extname(entry.name))) {
+      const source = readFileSync(join(dir, entry.name), 'utf8');
+      const scripts = [...source.matchAll(/<script\b([^>]*)>/g)];
+      if (scripts.length) {
+        for (const [, attributes] of scripts) {
+          found.add(/\blang\s*=\s*['"](?:ts|typescript)['"]/.test(attributes) ? 'typescript' : 'javascript');
+        }
+      }
     } else if (!entry.name.endsWith('.d.ts') && SOURCE_LANGUAGES[extname(entry.name)]) {
       found.add(SOURCE_LANGUAGES[extname(entry.name)]);
     }

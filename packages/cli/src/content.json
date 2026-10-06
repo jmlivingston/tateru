@@ -21,7 +21,10 @@
     "invalidName": "Use letters, numbers, spaces, '-' or '_', starting with a letter.",
     "outsideRoot": "The directory must be inside the current directory.",
     "exists": "{{path}} already exists.",
-    "noGenerators": "Found nx.json but no tateru generators. Run tateru in an empty directory or remove nx.json."
+    "noGenerators": "Found nx.json but no tateru generators. Run tateru in an empty directory.",
+    "frameworkMismatch": "This workspace uses {{existing}}. Select that framework or start in a new directory.",
+    "invalidFramework": "Unknown framework: {{framework}}.",
+    "unsupportedFeatures": "{{framework}} does not support these optional tools: {{features}}."
   },
   "messages": {
     "monorepoDetected": "Detected a {{packageManager}} monorepo. Components go in {{dir}}.",
@@ -30,50 +33,41 @@
     "installFailed": "Install failed. Run '{{command}}' manually.",
     "created": "Created {{path}}",
     "summary": "Created the {{framework}} component {{name}} in {{path}}",
-    "reactWorkspaceCreated": "Created React workspace ({{count}} files).",
-    "reactWorkspaceSkipped": "Kept existing files: {{files}}",
+    "workspaceCreated": "Created {{framework}} workspace ({{count}} files).",
+    "workspaceSkipped": "Kept existing files: {{files}}",
     "generating": "Generating {{name}} with Nx...",
     "generated": "Generated {{name}}.",
     "generateFailed": "Generating the component failed. Run '{{command}}' in the workspace to retry.",
-    "summaryReact": "Created the React component {{name}} in {{path}}",
+    "workspaceSummary": "Created the {{framework}} component {{name}} in {{path}}",
     "languageDetected": "Detected {{language}} from your existing code."
   },
   "frameworks": {
     "angular": {
       "label": "Angular",
-      "dependencies": {
-        "@angular/core": "^22.2.1",
-        "rxjs": "^7.8.2",
-        "tslib": "^2.8.1"
-      },
-      "files": {
-        "{{kebab}}.component.ts": "import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-{{kebab}}',\n  standalone: true,\n  template: '<div class=\"{{kebab}}\">{{Name}}</div>',\n  styleUrl: './{{kebab}}.component.css'\n})\nexport class {{Name}}Component {}\n",
-        "{{kebab}}.component.css": ".{{kebab}} {\n  display: block;\n}\n"
-      }
+      "workspace": true,
+      "language": "typescript",
+      "dependency": "@angular/core"
     },
     "react": {
       "label": "React",
-      "workspace": true
+      "workspace": true,
+      "dependency": "react"
     },
     "svelte": {
       "label": "Svelte",
-      "dependencies": {
-        "svelte": "^5.57.2"
-      },
-      "files": {
-        "{{Name}}.svelte": "<script>\n  import './{{Name}}.css';\n</script>\n\n<div class=\"{{kebab}}\">{{Name}}</div>\n",
-        "{{Name}}.css": ":global(.{{kebab}}) {\n  display: block;\n}\n"
-      }
+      "workspace": true,
+      "dependency": "svelte"
     },
     "vue": {
       "label": "Vue",
-      "dependencies": {
-        "vue": "^3.5.43"
-      },
-      "files": {
-        "{{Name}}.vue": "<template>\n  <div class=\"{{kebab}}\">{{Name}}</div>\n</template>\n\n<style src=\"./{{Name}}.css\"></style>\n",
-        "{{Name}}.css": ".{{kebab}} {\n  display: block;\n}\n"
-      }
+      "workspace": true,
+      "dependency": "vue"
+    },
+    "solid": {
+      "label": "Solid",
+      "workspace": true,
+      "dependency": "solid-js",
+      "unsupportedFeatures": ["storybook"]
     }
   },
   "packageManagers": {
@@ -94,8 +88,7 @@
       "install": ["bun", "install"]
     }
   },
-  "react": {
-    "template": "react",
+  "workspace": {
     "packagesDir": "packages",
     "generatorsFile": "tools/generators/generators.json",
     "nxBinary": "node_modules/.bin/nx"
@@ -113,6 +106,6 @@
     "eslint": "Would you like to add ESLint?",
     "stylelint": "Would you like to add Stylelint?",
     "storybook": "Would you like to add Storybook?",
-    "tests": "Would you like to add unit tests (Vitest and Testing Library)?"
+    "tests": "Would you like to add unit tests (Vitest)?"
   }
 }

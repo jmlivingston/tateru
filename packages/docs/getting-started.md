@@ -6,10 +6,12 @@ Run tateru from an empty project directory:
 npx jmlivingston/tateru
 ```
 
-Choose **React**, your package manager, language and optional tools, then name your first component.
+Choose your framework, package manager, language and optional tools, then name your first component.
+Angular uses TypeScript. Storybook is not offered for Solid.
 
 ::: tip
-Existing React workspaces reuse their tooling choices. Language is detected when possible.
+Existing workspaces reuse their tooling choices. Select the same framework;
+language is detected when possible.
 :::
 
 ## Add another component

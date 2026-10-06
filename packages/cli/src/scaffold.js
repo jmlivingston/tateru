@@ -40,29 +40,6 @@ export const scaffoldMonorepo = ({ cwd, packageManager, packagesDir }) => {
   return created;
 };
 
-export const writeComponent = ({ cwd, dir, framework, name, asPackage }) => {
-  const kebab = toKebab(name);
-  const vars = { Name: toPascal(name), kebab };
-  const target = join(cwd, dir, kebab);
-  const { dependencies, files } = content.frameworks[framework];
-  const written = [];
-
-  mkdirSync(target, { recursive: true });
-
-  if (asPackage) {
-    writeJson(join(target, 'package.json'), { name: kebab, version: '1.0.0', private: true, dependencies });
-    written.push('package.json');
-  }
-
-  for (const [fileName, body] of Object.entries(files)) {
-    const resolved = fill(fileName, vars);
-    writeFileSync(join(target, resolved), fill(body, vars));
-    written.push(resolved);
-  }
-
-  return { target, written };
-};
-
 export const installCommand = (packageManager) => content.packageManagers[packageManager].install;
 
 export const run = (command, args, { cwd, env } = {}) =>
@@ -102,25 +79,53 @@ const workspaceNames = (cwd, existingName) => {
   return { name: directoryName, scope, rootName: scoped ? existingName : `${scope}/root` };
 };
 
-export const hasGenerators = (cwd) => existsSync(join(cwd, content.react.generatorsFile));
+export const hasGenerators = (cwd) => existsSync(join(cwd, content.workspace.generatorsFile));
 
-export const scaffoldReactWorkspace = ({ cwd, features }) => {
+export const supportedFeatures = (framework) => {
+  const config = content.frameworks[framework];
+  if (!config) throw new Error(fill(content.validation.invalidFramework, { framework }));
+  return Object.keys(content.features).filter((feature) => !config.unsupportedFeatures?.includes(feature));
+};
+
+export const readWorkspaceFramework = (cwd) => {
+  const configPath = join(cwd, 'tateru.json');
+  if (existsSync(configPath)) {
+    const framework = JSON.parse(readFileSync(configPath, 'utf8')).framework;
+    if (framework) return framework;
+  }
+  const pkgPath = join(cwd, 'package.json');
+  if (!existsSync(pkgPath)) return undefined;
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+  const dependencies = { ...pkg.dependencies, ...pkg.devDependencies };
+  const matches = Object.keys(content.frameworks).filter(
+    (framework) => content.frameworks[framework].dependency in dependencies,
+  );
+  return matches.length === 1 ? matches[0] : undefined;
+};
+
+export const scaffoldWorkspace = ({ cwd, framework, features, packageManager }) => {
+  const supported = supportedFeatures(framework);
+  const unsupported = Object.keys(features).filter((feature) => features[feature] && !supported.includes(feature));
+  if (unsupported.length) {
+    throw new Error(fill(content.validation.unsupportedFeatures, { framework, features: unsupported.join(', ') }));
+  }
   const pkgPath = join(cwd, 'package.json');
   const existing = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : null;
-  const vars = { ...workspaceNames(cwd, existing?.name), ...features };
-  const base = `${content.react.template}/base`;
+  const vars = { ...workspaceNames(cwd, existing?.name), ...features, framework };
+  const base = `${framework}/base`;
   const template = JSON.parse(readTemplate(base, 'package.json.tpl', vars));
   const enabled = Object.keys(content.features).filter((feature) => features[feature]);
 
   writeJson(pkgPath, existing ? mergePackageJson(template, existing) : template);
   const { written, skipped } = copyTemplate({
-    names: [
-      base,
-      ...enabled.flatMap((feature) => [`${content.react.template}/features/${feature}`, `common/features/${feature}`]),
-    ],
+    names: [base, ...enabled.flatMap((feature) => [`${framework}/features/${feature}`, `common/features/${feature}`])],
     target: cwd,
     vars,
   });
+  if (packageManager === 'pnpm' && !existsSync(join(cwd, 'pnpm-workspace.yaml'))) {
+    writeFileSync(join(cwd, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n");
+    written.push('pnpm-workspace.yaml');
+  }
 
   return {
     rootName: vars.rootName,
@@ -129,17 +134,20 @@ export const scaffoldReactWorkspace = ({ cwd, features }) => {
   };
 };
 
-export const generateArgs = ({ rootName, name, language }) => [
+export const scaffoldReactWorkspace = (options) => scaffoldWorkspace({ ...options, framework: 'react' });
+
+export const generateArgs = ({ name, language }) => [
   'generate',
-  `${rootName}:component`,
+  `./${content.workspace.generatorsFile}:component`,
   `--name=${toPascal(name)}`,
   `--language=${language}`,
 ];
 
-export const generateReactComponent = ({ cwd, rootName, name, language }) =>
-  run(join(cwd, content.react.nxBinary), generateArgs({ rootName, name, language }), {
+export const generateComponent = ({ cwd, rootName, name, language }) =>
+  run(join(cwd, content.workspace.nxBinary), generateArgs({ rootName, name, language }), {
     cwd,
     env: { NX_DAEMON: 'false' },
   });
 
+export const generateReactComponent = generateComponent;
 export const readRootName = (cwd) => JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8')).name;

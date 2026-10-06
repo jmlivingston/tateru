@@ -1,0 +1,9 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'tateru-<%= fileName %>',
+  standalone: true,
+  template: '<div class="<%= fileName %>"><%= className %> Component</div>',
+  styleUrl: './<%= className %>.component.css',
+})
+export class <%= className %>Component {}

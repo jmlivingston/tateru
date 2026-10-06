@@ -1,0 +1,14 @@
+{
+  "generators": {
+    "component": {
+      "factory": "./component/index.js",
+      "schema": "./component/schema.json",
+      "description": "Create a publishable Solid component package"
+    },
+    "css": {
+      "factory": "./css/index.js",
+      "schema": "./css/schema.json",
+      "description": "Create a publishable CSS package"
+    }
+  }
+}

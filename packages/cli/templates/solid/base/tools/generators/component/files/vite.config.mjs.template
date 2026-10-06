@@ -1,0 +1,29 @@
+<% if (tests) { %>import { defineConfig } from 'vitest/config';<% } else { %>import { defineConfig } from 'vite';<% } %>
+import { fileURLToPath } from 'node:url';
+import solid from 'vite-plugin-solid';
+
+const root = fileURLToPath(new URL('.', import.meta.url));
+const output = fileURLToPath(new URL('../../dist/packages/<%= className %>/', import.meta.url));
+const extension = '<%= language === "typescript" ? "tsx" : "jsx" %>';
+
+export default defineConfig({
+  root,
+  plugins: [solid()],
+  build: {
+    lib: {
+      entry: `${root}src/index.${extension}`,
+      formats: ['es', 'cjs'],
+      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
+      cssFileName: 'index',
+    },
+    outDir: output,
+    emptyOutDir: true,
+    rollupOptions: {
+      external: (id) => id === 'solid-js' || id.startsWith('solid-js/'),
+    },
+  },
+<% if (tests) { %>  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.{jsx,tsx}'],
+  },
+<% } %>});
