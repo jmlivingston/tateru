@@ -82,13 +82,20 @@ const runReact = async (cwd, workspace) => {
     language = await ask(p.select({ message: prompts.language, options: options(content.languages) }));
   }
 
+  const features = {};
+  if (!hasNx) {
+    for (const [feature, message] of Object.entries(content.features)) {
+      features[feature] = await ask(p.confirm({ message, initialValue: true }));
+    }
+  }
+
   const name = await askName(cwd, dir, toPascal);
 
   let rootName;
   if (hasNx) {
     rootName = readRootName(cwd);
   } else {
-    const { rootName: scaffoldedName, written, skipped } = scaffoldReactWorkspace({ cwd });
+    const { rootName: scaffoldedName, written, skipped } = scaffoldReactWorkspace({ cwd, features });
     rootName = scaffoldedName;
     p.log.success(fill(messages.reactWorkspaceCreated, { count: written.length }));
     if (skipped.length) p.log.warn(fill(messages.reactWorkspaceSkipped, { files: skipped.join(', ') }));

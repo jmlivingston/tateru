@@ -15,26 +15,30 @@ export const readTemplate = (name, file, vars) =>
   fill(readFileSync(join(templatesRoot, name, file), 'utf8'), vars);
 
 // Files ending in .tpl are rendered with {{vars}} and lose the suffix; the rest, such as Nx generator templates, are copied as-is.
-export const copyTemplate = ({ name, target, vars }) => {
-  const source = join(templatesRoot, name);
+export const copyTemplate = ({ names, target, vars }) => {
   const written = [];
   const skipped = [];
 
-  for (const file of listFiles(source)) {
-    const rendered = file.endsWith(RENDERED_SUFFIX);
-    const relativePath = relative(source, file);
-    const outputPath = rendered ? relativePath.slice(0, -RENDERED_SUFFIX.length) : relativePath;
-    const destination = join(target, outputPath);
+  for (const name of names) {
+    const source = join(templatesRoot, name);
+    if (!existsSync(source)) continue;
 
-    if (existsSync(destination)) {
-      skipped.push(outputPath);
-      continue;
+    for (const file of listFiles(source)) {
+      const rendered = file.endsWith(RENDERED_SUFFIX);
+      const relativePath = relative(source, file);
+      const outputPath = rendered ? relativePath.slice(0, -RENDERED_SUFFIX.length) : relativePath;
+      const destination = join(target, outputPath);
+
+      if (existsSync(destination)) {
+        skipped.push(outputPath);
+        continue;
+      }
+
+      mkdirSync(dirname(destination), { recursive: true });
+      if (rendered) writeFileSync(destination, fill(readFileSync(file, 'utf8'), vars));
+      else copyFileSync(file, destination);
+      written.push(outputPath);
     }
-
-    mkdirSync(dirname(destination), { recursive: true });
-    if (rendered) writeFileSync(destination, fill(readFileSync(file, 'utf8'), vars));
-    else copyFileSync(file, destination);
-    written.push(outputPath);
   }
 
   return { written, skipped };

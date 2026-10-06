@@ -104,14 +104,20 @@ const workspaceNames = (cwd, existingName) => {
 
 export const hasGenerators = (cwd) => existsSync(join(cwd, content.react.generatorsFile));
 
-export const scaffoldReactWorkspace = ({ cwd }) => {
+export const scaffoldReactWorkspace = ({ cwd, features }) => {
   const pkgPath = join(cwd, 'package.json');
   const existing = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : null;
-  const vars = workspaceNames(cwd, existing?.name);
-  const template = JSON.parse(readTemplate(content.react.template, 'package.json.tpl', vars));
+  const vars = { ...workspaceNames(cwd, existing?.name), ...features };
+  const base = `${content.react.template}/base`;
+  const template = JSON.parse(readTemplate(base, 'package.json.tpl', vars));
+  const enabled = Object.keys(content.features).filter((feature) => features[feature]);
 
   writeJson(pkgPath, existing ? mergePackageJson(template, existing) : template);
-  const { written, skipped } = copyTemplate({ name: content.react.template, target: cwd, vars });
+  const { written, skipped } = copyTemplate({
+    names: [base, ...enabled.map((feature) => `${content.react.template}/features/${feature}`)],
+    target: cwd,
+    vars
+  });
 
   return {
     rootName: vars.rootName,

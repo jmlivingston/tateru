@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { content } from '../src/content.js';
+import { content, fill } from '../src/content.js';
 import { detectLanguage, detectPackageManager, detectWorkspace, hasComponentsDir } from '../src/detect.js';
 import { toKebab, toPascal, isValidName } from '../src/names.js';
 import {
@@ -15,6 +15,7 @@ import {
   writeComponent
 } from '../src/scaffold.js';
 
+const allFeatures = Object.fromEntries(Object.keys(content.features).map((feature) => [feature, true]));
 const tmp = () => mkdtempSync(join(tmpdir(), 'tateru-'));
 
 test('name helpers', () => {
@@ -120,7 +121,7 @@ test('detects a package manager only when there is evidence', () => {
 
 test('scaffolds the React workspace in an empty directory', () => {
   const dir = tmp();
-  const { rootName, written, skipped } = scaffoldReactWorkspace({ cwd: dir });
+  const { rootName, written, skipped } = scaffoldReactWorkspace({ cwd: dir, features: allFeatures });
   const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
 
   assert.match(rootName, /^@[^/]+\/root$/);
@@ -137,7 +138,7 @@ test('scaffolds the React workspace in an empty directory', () => {
 
 test('keeps Nx generator templates unrendered', () => {
   const dir = tmp();
-  scaffoldReactWorkspace({ cwd: dir });
+  scaffoldReactWorkspace({ cwd: dir, features: allFeatures });
   const template = readFileSync(join(dir, 'tools/generators/component/files/package.json.template'), 'utf8');
   assert.ok(template.includes('<%= npmScope %>'));
 });
@@ -150,7 +151,7 @@ test('merges into an existing package.json and keeps existing files', () => {
   );
   writeFileSync(join(dir, 'README.md'), 'keep');
 
-  const { rootName, skipped } = scaffoldReactWorkspace({ cwd: dir });
+  const { rootName, skipped } = scaffoldReactWorkspace({ cwd: dir, features: allFeatures });
   const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
 
   assert.equal(rootName, '@my-app/root');
@@ -167,7 +168,7 @@ test('merges into an existing package.json and keeps existing files', () => {
 test('keeps an existing scoped root name', () => {
   const dir = tmp();
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: '@acme/mono' }));
-  assert.equal(scaffoldReactWorkspace({ cwd: dir }).rootName, '@acme/mono');
+  assert.equal(scaffoldReactWorkspace({ cwd: dir, features: allFeatures }).rootName, '@acme/mono');
 });
 
 test('builds the nx generate arguments with a PascalCase name', () => {
@@ -221,4 +222,49 @@ test('falls back to project config only when allowed', () => {
   const js = tmp();
   writeFile(js, 'jsconfig.json', '{}');
   assert.equal(detectLanguage(js, { dir: 'packages', useProjectConfig: true }), 'javascript');
+});
+
+test('fill keeps or drops sections by variable', () => {
+  const text = 'a\n{{#x}}\nyes {{n}}\n{{/x}}\n{{^x}}\nno\n{{/x}}\nz\n';
+  assert.equal(fill(text, { x: true, n: 1 }), 'a\nyes 1\nz\n');
+  assert.equal(fill(text, { x: false, n: 1 }), 'a\nno\nz\n');
+});
+
+test('every feature combination renders valid files for exactly the chosen tools', () => {
+  const keys = Object.keys(content.features);
+  for (let mask = 0; mask < 1 << keys.length; mask++) {
+    const features = Object.fromEntries(keys.map((key, index) => [key, Boolean(mask & (1 << index))]));
+    const dir = tmp();
+    scaffoldReactWorkspace({ cwd: dir, features });
+
+    for (const file of readdirSync(dir, { recursive: true })) {
+      if (statSync(join(dir, file)).isDirectory()) continue;
+      const body = readFileSync(join(dir, file), 'utf8').toString();
+      if (file.endsWith('.json')) JSON.parse(body);
+      if (/^(package\.json|nx\.json|README\.md|tsconfig\.json|scripts\/viteConfig\.js)$/.test(file)) {
+        assert.ok(!/\{\{[#^/]?\w+\}\}/.test(body), `${file} for ${JSON.stringify(features)}`);
+      }
+    }
+
+    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+    const nx = JSON.parse(readFileSync(join(dir, 'nx.json'), 'utf8'));
+    const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+    assert.deepEqual(JSON.parse(readFileSync(join(dir, 'tateru.json'), 'utf8')), { features });
+    assert.equal(existsSync(join(dir, 'prettier.config.js')), features.prettier);
+    assert.equal('prettier' in pkg.devDependencies, features.prettier);
+    assert.equal('format' in pkg.scripts, features.prettier);
+    assert.equal('format' in project.targets, features.prettier);
+    assert.equal(existsSync(join(dir, 'eslint.config.js')), features.eslint);
+    assert.equal('eslint' in pkg.devDependencies, features.eslint);
+    assert.equal('lint' in project.targets, features.eslint);
+    assert.equal(existsSync(join(dir, 'packages/Storybook')), features.storybook);
+    assert.equal('storybook' in pkg.devDependencies, features.storybook);
+    assert.equal(nx.plugins.some(({ plugin }) => plugin === '@nx/storybook/plugin'), features.storybook);
+    assert.equal(existsSync(join(dir, 'scripts/storybookConfig.js')), features.storybook);
+    assert.equal(existsSync(join(dir, 'vite.config.js')), features.tests);
+    assert.equal('vitest' in pkg.devDependencies, features.tests);
+    assert.equal('test' in project.targets, features.tests);
+    assert.equal(existsSync(join(dir, 'scripts/viteConfig.test.js')), features.tests);
+    assert.equal(readFileSync(join(dir, 'scripts/viteConfig.js'), 'utf8').includes('vitestSetup'), features.tests);
+  }
 });

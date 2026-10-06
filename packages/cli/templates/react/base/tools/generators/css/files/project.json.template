@@ -1,0 +1,32 @@
+{
+  "name": "<%= propertyName %>",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/<%= className %>/src",
+  "projectType": "library",
+  "targets": {
+<%_ if (prettier) { _%>
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write .",
+        "cwd": "packages/<%= className %>"
+      }
+    },
+<%_ } _%>
+<%_ if (eslint) { _%>
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint --fix --cache --cache-location node_modules/.cache/eslint/ packages/<%= className %>"
+      }
+    },
+<%_ } _%>
+    "lint-style": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "stylelint --fix \"**/*.css\"",
+        "cwd": "packages/<%= className %>"
+      }
+    }
+  }
+}

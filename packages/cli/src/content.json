@@ -119,5 +119,11 @@
     "javascript": {
       "label": "JavaScript"
     }
+  },
+  "features": {
+    "prettier": "Would you like to add Prettier?",
+    "eslint": "Would you like to add ESLint?",
+    "storybook": "Would you like to add Storybook?",
+    "tests": "Would you like to add unit tests (Vitest and Testing Library)?"
   }
 }
