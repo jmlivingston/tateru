@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Component name in PascalCase",
+      "pattern": "^[A-Z][a-zA-Z0-9]*$",
+      "x-prompt": "Component name (PascalCase):"
+    },
+    "language": {
+      "type": "string",
+      "description": "Source language",
+      "enum": [
+        "javascript",
+        "typescript"
+      ],
+      "default": "javascript",
+      "x-prompt": {
+        "message": "Language:",
+        "type": "list",
+        "items": [
+          {
+            "value": "javascript",
+            "label": "JavaScript"
+          },
+          {
+            "value": "typescript",
+            "label": "TypeScript"
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

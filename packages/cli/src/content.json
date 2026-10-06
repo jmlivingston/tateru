@@ -1,0 +1,123 @@
+{
+  "intro": "Component generator",
+  "cancelled": "Operation cancelled.",
+  "prompts": {
+    "isMonorepo": "Will this be a monorepo?",
+    "yes": "Yes",
+    "no": "No",
+    "packageManager": "What type of monorepo would you like to create?",
+    "packagesDir": "Where would you like packages to be added?",
+    "componentsDir": "Where is your components directory? (Type '.' if you'd like this at your root directory.)",
+    "framework": "What framework would you like to use?",
+    "componentName": "What is your component name?",
+    "language": "Would you like to use TypeScript or JavaScript?"
+  },
+  "defaults": {
+    "packagesDir": "packages",
+    "componentsDir": "components"
+  },
+  "validation": {
+    "required": "A value is required.",
+    "invalidName": "Use letters, numbers, spaces, '-' or '_', starting with a letter.",
+    "outsideRoot": "The directory must be inside the current directory.",
+    "exists": "{{path}} already exists.",
+    "noGenerators": "Found nx.json but no tateru generators. Run tateru in an empty directory or remove nx.json."
+  },
+  "messages": {
+    "monorepoDetected": "Detected a {{packageManager}} monorepo. Components go in {{dir}}.",
+    "installing": "Installing packages with {{packageManager}}...",
+    "installed": "Packages installed.",
+    "installFailed": "Install failed. Run '{{command}}' manually.",
+    "created": "Created {{path}}",
+    "summary": "Created the {{framework}} component {{name}} in {{path}}",
+    "reactWorkspaceCreated": "Created React workspace ({{count}} files).",
+    "reactWorkspaceSkipped": "Kept existing files: {{files}}",
+    "generating": "Generating {{name}} with Nx...",
+    "generated": "Generated {{name}}.",
+    "generateFailed": "Generating the component failed. Run '{{command}}' in the workspace to retry.",
+    "summaryReact": "Created the React component {{name}} in {{path}}",
+    "languageDetected": "Detected {{language}} from your existing code."
+  },
+  "frameworks": {
+    "angular": {
+      "label": "Angular",
+      "dependencies": {
+        "@angular/core": "^22.2.1",
+        "rxjs": "^7.8.2",
+        "tslib": "^2.8.1"
+      },
+      "files": {
+        "{{kebab}}.component.ts": "import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-{{kebab}}',\n  standalone: true,\n  template: '<div class=\"{{kebab}}\">{{Name}}</div>',\n  styleUrl: './{{kebab}}.component.css'\n})\nexport class {{Name}}Component {}\n",
+        "{{kebab}}.component.css": ".{{kebab}} {\n  display: block;\n}\n"
+      }
+    },
+    "react": {
+      "label": "React",
+      "workspace": true
+    },
+    "svelte": {
+      "label": "Svelte",
+      "dependencies": {
+        "svelte": "^5.57.2"
+      },
+      "files": {
+        "{{Name}}.svelte": "<script>\n  import './{{Name}}.css';\n</script>\n\n<div class=\"{{kebab}}\">{{Name}}</div>\n",
+        "{{Name}}.css": ":global(.{{kebab}}) {\n  display: block;\n}\n"
+      }
+    },
+    "vue": {
+      "label": "Vue",
+      "dependencies": {
+        "vue": "^3.5.43"
+      },
+      "files": {
+        "{{Name}}.vue": "<template>\n  <div class=\"{{kebab}}\">{{Name}}</div>\n</template>\n\n<style src=\"./{{Name}}.css\"></style>\n",
+        "{{Name}}.css": ".{{kebab}} {\n  display: block;\n}\n"
+      }
+    }
+  },
+  "packageManagers": {
+    "npm": {
+      "label": "npm",
+      "install": [
+        "npm",
+        "install"
+      ]
+    },
+    "yarn": {
+      "label": "yarn",
+      "install": [
+        "yarn",
+        "install"
+      ]
+    },
+    "pnpm": {
+      "label": "pnpm",
+      "install": [
+        "pnpm",
+        "install"
+      ]
+    },
+    "bun": {
+      "label": "bun",
+      "install": [
+        "bun",
+        "install"
+      ]
+    }
+  },
+  "react": {
+    "template": "react",
+    "packagesDir": "packages",
+    "generatorsFile": "tools/generators/generators.json",
+    "nxBinary": "node_modules/.bin/nx"
+  },
+  "languages": {
+    "typescript": {
+      "label": "TypeScript"
+    },
+    "javascript": {
+      "label": "JavaScript"
+    }
+  }
+}

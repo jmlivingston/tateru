@@ -1,0 +1,17 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import <%= className %> from "./<%= className %>";
+
+const meta = {
+  title: "<%= className %>",
+  component: <%= className %>,
+  tags: ["autodocs"],
+  argTypes: {},
+} satisfies Meta<typeof <%= className %>>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {},
+};

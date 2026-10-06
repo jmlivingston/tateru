@@ -1,0 +1,224 @@
+import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { content } from '../src/content.js';
+import { detectLanguage, detectPackageManager, detectWorkspace, hasComponentsDir } from '../src/detect.js';
+import { toKebab, toPascal, isValidName } from '../src/names.js';
+import {
+  ensurePackageJson,
+  generateArgs,
+  hasGenerators,
+  scaffoldMonorepo,
+  scaffoldReactWorkspace,
+  writeComponent
+} from '../src/scaffold.js';
+
+const tmp = () => mkdtempSync(join(tmpdir(), 'tateru-'));
+
+test('name helpers', () => {
+  assert.equal(toPascal('my button'), 'MyButton');
+  assert.equal(toKebab('MyButton'), 'my-button');
+  assert.equal(toKebab('my_cool-thing'), 'my-cool-thing');
+  assert.equal(isValidName('1abc'), false);
+  assert.equal(isValidName('Button'), true);
+});
+
+test('detects no workspace in an empty directory', () => {
+  assert.equal(detectWorkspace(tmp()), null);
+});
+
+test('detects npm, yarn, bun and pnpm workspaces', () => {
+  const cases = [
+    ['npm', {}, 'package-lock.json'],
+    ['yarn', {}, 'yarn.lock'],
+    ['bun', {}, 'bun.lock'],
+    ['pnpm', { packageManager: 'pnpm@9.0.0' }, null]
+  ];
+  for (const [pm, extra, lock] of cases) {
+    const dir = tmp();
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ workspaces: ['libs/*'], ...extra }));
+    if (lock) writeFileSync(join(dir, lock), '');
+    assert.deepEqual(detectWorkspace(dir), { packageManager: pm, packagesDir: 'libs' });
+  }
+});
+
+test('detects pnpm-workspace.yaml and object-form workspaces', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n  - \"packages/*\"\n");
+  assert.deepEqual(detectWorkspace(dir), { packageManager: 'pnpm', packagesDir: 'packages' });
+
+  const other = tmp();
+  writeFileSync(join(other, 'package.json'), JSON.stringify({ workspaces: { packages: ['pkgs/**'] } }));
+  assert.equal(detectWorkspace(other).packagesDir, 'pkgs');
+});
+
+test('detects components directory', () => {
+  const dir = tmp();
+  assert.equal(hasComponentsDir(dir), false);
+  mkdirSync(join(dir, 'components'));
+  assert.equal(hasComponentsDir(dir), true);
+});
+
+test('scaffolds npm and pnpm monorepos', () => {
+  const npm = tmp();
+  scaffoldMonorepo({ cwd: npm, packageManager: 'npm', packagesDir: 'packages' });
+  assert.deepEqual(JSON.parse(readFileSync(join(npm, 'package.json'), 'utf8')).workspaces, ['packages/*']);
+  assert.deepEqual(detectWorkspace(npm), { packageManager: 'npm', packagesDir: 'packages' });
+
+  const pnpm = tmp();
+  scaffoldMonorepo({ cwd: pnpm, packageManager: 'pnpm', packagesDir: 'packages' });
+  assert.deepEqual(detectWorkspace(pnpm), { packageManager: 'pnpm', packagesDir: 'packages' });
+});
+
+test('preserves an existing package.json', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'keep', scripts: { a: 'b' } }));
+  scaffoldMonorepo({ cwd: dir, packageManager: 'yarn', packagesDir: 'packages' });
+  const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+  assert.equal(pkg.name, 'keep');
+  assert.deepEqual(pkg.scripts, { a: 'b' });
+  assert.deepEqual(pkg.workspaces, ['packages/*']);
+});
+
+test('writes a component with a matching css file for every framework', () => {
+  for (const framework of Object.keys(content.frameworks)) {
+    if (content.frameworks[framework].workspace) continue;
+    const cwd = tmp();
+    const { target, written } = writeComponent({
+      cwd,
+      dir: 'components',
+      framework,
+      name: 'Fancy Button',
+      asPackage: framework === 'vue'
+    });
+    assert.ok(written.some((file) => file.endsWith('.css')), framework);
+    for (const file of written) assert.ok(existsSync(join(target, file)));
+    assert.equal(written.includes('package.json'), framework === 'vue');
+    for (const file of written) {
+      assert.ok(!readFileSync(join(target, file), 'utf8').includes('{{'), file);
+    }
+  }
+});
+
+test('creates package.json only when missing', () => {
+  const dir = tmp();
+  assert.equal(ensurePackageJson(dir), true);
+  assert.equal(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).private, true);
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'keep' }));
+  assert.equal(ensurePackageJson(dir), false);
+  assert.equal(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).name, 'keep');
+});
+
+test('detects a package manager only when there is evidence', () => {
+  const dir = tmp();
+  assert.equal(detectPackageManager(dir), null);
+  writeFileSync(join(dir, 'pnpm-lock.yaml'), '');
+  assert.equal(detectPackageManager(dir), 'pnpm');
+});
+
+test('scaffolds the React workspace in an empty directory', () => {
+  const dir = tmp();
+  const { rootName, written, skipped } = scaffoldReactWorkspace({ cwd: dir });
+  const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+
+  assert.match(rootName, /^@[^/]+\/root$/);
+  assert.equal(pkg.name, rootName);
+  assert.equal(pkg.type, 'module');
+  assert.ok(pkg.scripts['create-component'].includes(rootName));
+  assert.deepEqual(skipped, []);
+  assert.ok(written.includes('nx.json'));
+  assert.ok(hasGenerators(dir));
+  assert.ok(existsSync(join(dir, '.gitignore')));
+  assert.ok(existsSync(join(dir, 'packages/Storybook/package.json')));
+  assert.equal(JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8')).name, toKebab(dir.split('/').pop()));
+});
+
+test('keeps Nx generator templates unrendered', () => {
+  const dir = tmp();
+  scaffoldReactWorkspace({ cwd: dir });
+  const template = readFileSync(join(dir, 'tools/generators/component/files/package.json.template'), 'utf8');
+  assert.ok(template.includes('<%= npmScope %>'));
+});
+
+test('merges into an existing package.json and keeps existing files', () => {
+  const dir = tmp();
+  writeFileSync(
+    join(dir, 'package.json'),
+    JSON.stringify({ name: 'my app', type: 'commonjs', scripts: { test: 'mine' }, devDependencies: { left: '1.0.0' } })
+  );
+  writeFileSync(join(dir, 'README.md'), 'keep');
+
+  const { rootName, skipped } = scaffoldReactWorkspace({ cwd: dir });
+  const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+
+  assert.equal(rootName, '@my-app/root');
+  assert.equal(pkg.name, '@my-app/root');
+  assert.equal(pkg.type, 'module');
+  assert.equal(pkg.scripts.test, 'mine');
+  assert.ok(pkg.scripts.build);
+  assert.equal(pkg.devDependencies.left, '1.0.0');
+  assert.ok(pkg.devDependencies.nx);
+  assert.deepEqual(skipped, ['README.md']);
+  assert.equal(readFileSync(join(dir, 'README.md'), 'utf8'), 'keep');
+});
+
+test('keeps an existing scoped root name', () => {
+  const dir = tmp();
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: '@acme/mono' }));
+  assert.equal(scaffoldReactWorkspace({ cwd: dir }).rootName, '@acme/mono');
+});
+
+test('builds the nx generate arguments with a PascalCase name', () => {
+  assert.deepEqual(generateArgs({ rootName: '@acme/root', name: 'fancy button', language: 'typescript' }), [
+    'generate',
+    '@acme/root:component',
+    '--name=FancyButton',
+    '--language=typescript'
+  ]);
+});
+
+const writeFile = (dir, file, body = '') => {
+  mkdirSync(join(dir, file, '..'), { recursive: true });
+  writeFileSync(join(dir, file), body);
+};
+
+test('cannot detect a language in an empty directory', () => {
+  assert.equal(detectLanguage(tmp(), { dir: 'packages', useProjectConfig: true }), null);
+});
+
+test('detects the language from existing source files', () => {
+  const ts = tmp();
+  writeFile(ts, 'packages/Button/src/index.ts');
+  writeFile(ts, 'packages/Button/vite.config.mjs');
+  assert.equal(detectLanguage(ts, { dir: 'packages', useProjectConfig: false }), 'typescript');
+
+  const js = tmp();
+  writeFile(js, 'packages/Button/src/Button.jsx');
+  writeFile(js, 'packages/Button/node_modules/dep/index.ts');
+  assert.equal(detectLanguage(js, { dir: 'packages', useProjectConfig: false }), 'javascript');
+});
+
+test('cannot detect a language from mixed sources', () => {
+  const dir = tmp();
+  writeFile(dir, 'packages/A/src/index.ts');
+  writeFile(dir, 'packages/B/src/index.js');
+  writeFile(dir, 'tsconfig.json', '{}');
+  assert.equal(detectLanguage(dir, { dir: 'packages', useProjectConfig: true }), null);
+});
+
+test('falls back to project config only when allowed', () => {
+  const ts = tmp();
+  writeFile(ts, 'tsconfig.json', '{}');
+  assert.equal(detectLanguage(ts, { dir: 'packages', useProjectConfig: true }), 'typescript');
+  assert.equal(detectLanguage(ts, { dir: 'packages', useProjectConfig: false }), null);
+
+  const dep = tmp();
+  writeFile(dep, 'package.json', JSON.stringify({ devDependencies: { typescript: '^5.0.0' } }));
+  assert.equal(detectLanguage(dep, { dir: 'packages', useProjectConfig: true }), 'typescript');
+
+  const js = tmp();
+  writeFile(js, 'jsconfig.json', '{}');
+  assert.equal(detectLanguage(js, { dir: 'packages', useProjectConfig: true }), 'javascript');
+});

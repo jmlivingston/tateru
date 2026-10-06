@@ -1,0 +1,32 @@
+{
+  "name": "@tateru/cli",
+  "version": "1.0.0",
+  "description": "Scaffold a framework component, optionally inside a new monorepo",
+  "type": "module",
+  "bin": {
+    "tateru": "./bin/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates"
+  ],
+  "scripts": {
+    "start": "node bin/index.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "tateru",
+    "nx",
+    "cli",
+    "scaffold",
+    "monorepo"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@clack/prompts": "^1.8.1"
+  }
+}

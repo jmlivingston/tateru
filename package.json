@@ -1,13 +1,16 @@
 {
-  "name": "@tateru/cli",
+  "name": "@tateru/root",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Tateru workspace",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nx run-many -t test"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "devDependencies": {
+    "nx": "^23.2.1"
+  }
 }

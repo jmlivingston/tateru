@@ -1,0 +1,11 @@
+import "./<%= className %>.css";
+
+function <%= className %>() {
+  return (
+    <div className="<%= fileName %>">
+      <%= className %> Component
+    </div>
+  );
+}
+
+export default <%= className %>;

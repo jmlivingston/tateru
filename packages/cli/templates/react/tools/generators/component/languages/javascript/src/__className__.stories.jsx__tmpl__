@@ -1,0 +1,12 @@
+import <%= className %> from "./<%= className %>";
+
+export default {
+  title: "<%= className %>",
+  component: <%= className %>,
+  tags: ['autodocs'],
+  argTypes: {},
+};
+
+export const Default = {
+  args: {},
+};
