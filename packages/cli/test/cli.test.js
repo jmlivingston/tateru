@@ -12,7 +12,7 @@ import {
   hasGenerators,
   scaffoldMonorepo,
   scaffoldReactWorkspace,
-  writeComponent
+  writeComponent,
 } from '../src/scaffold.js';
 
 const allFeatures = Object.fromEntries(Object.keys(content.features).map((feature) => [feature, true]));
@@ -35,7 +35,7 @@ test('detects npm, yarn, bun and pnpm workspaces', () => {
     ['npm', {}, 'package-lock.json'],
     ['yarn', {}, 'yarn.lock'],
     ['bun', {}, 'bun.lock'],
-    ['pnpm', { packageManager: 'pnpm@9.0.0' }, null]
+    ['pnpm', { packageManager: 'pnpm@9.0.0' }, null],
   ];
   for (const [pm, extra, lock] of cases) {
     const dir = tmp();
@@ -47,7 +47,7 @@ test('detects npm, yarn, bun and pnpm workspaces', () => {
 
 test('detects pnpm-workspace.yaml and object-form workspaces', () => {
   const dir = tmp();
-  writeFileSync(join(dir, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n  - \"packages/*\"\n");
+  writeFileSync(join(dir, 'pnpm-workspace.yaml'), 'packages:\n  - \'apps/*\'\n  - "packages/*"\n');
   assert.deepEqual(detectWorkspace(dir), { packageManager: 'pnpm', packagesDir: 'packages' });
 
   const other = tmp();
@@ -92,9 +92,12 @@ test('writes a component with a matching css file for every framework', () => {
       dir: 'components',
       framework,
       name: 'Fancy Button',
-      asPackage: framework === 'vue'
+      asPackage: framework === 'vue',
     });
-    assert.ok(written.some((file) => file.endsWith('.css')), framework);
+    assert.ok(
+      written.some((file) => file.endsWith('.css')),
+      framework,
+    );
     for (const file of written) assert.ok(existsSync(join(target, file)));
     assert.equal(written.includes('package.json'), framework === 'vue');
     for (const file of written) {
@@ -147,7 +150,7 @@ test('merges into an existing package.json and keeps existing files', () => {
   const dir = tmp();
   writeFileSync(
     join(dir, 'package.json'),
-    JSON.stringify({ name: 'my app', type: 'commonjs', scripts: { test: 'mine' }, devDependencies: { left: '1.0.0' } })
+    JSON.stringify({ name: 'my app', type: 'commonjs', scripts: { test: 'mine' }, devDependencies: { left: '1.0.0' } }),
   );
   writeFileSync(join(dir, 'README.md'), 'keep');
 
@@ -176,7 +179,7 @@ test('builds the nx generate arguments with a PascalCase name', () => {
     'generate',
     '@acme/root:component',
     '--name=FancyButton',
-    '--language=typescript'
+    '--language=typescript',
   ]);
 });
 
@@ -262,7 +265,10 @@ test('every feature combination renders valid files for exactly the chosen tools
     assert.equal('lint-style' in pkg.scripts, features.stylelint);
     assert.equal(existsSync(join(dir, 'packages/Storybook')), features.storybook);
     assert.equal('storybook' in pkg.devDependencies, features.storybook);
-    assert.equal(nx.plugins.some(({ plugin }) => plugin === '@nx/storybook/plugin'), features.storybook);
+    assert.equal(
+      nx.plugins.some(({ plugin }) => plugin === '@nx/storybook/plugin'),
+      features.storybook,
+    );
     assert.equal(existsSync(join(dir, 'scripts/storybookConfig.js')), features.storybook);
     assert.equal(existsSync(join(dir, 'vite.config.js')), features.tests);
     assert.equal('vitest' in pkg.devDependencies, features.tests);

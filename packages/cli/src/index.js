@@ -14,7 +14,7 @@ import {
   readRootName,
   scaffoldMonorepo,
   scaffoldReactWorkspace,
-  writeComponent
+  writeComponent,
 } from './scaffold.js';
 
 const { prompts, validation, messages, defaults } = content;
@@ -45,8 +45,8 @@ const askName = (cwd, dir, toFolder) =>
         if (!isValidName(value)) return validation.invalidName;
         const path = join(dir, toFolder(value));
         if (existsSync(join(cwd, path))) return fill(validation.exists, { path });
-      }
-    })
+      },
+    }),
   );
 
 const install = async (cwd, packageManager) => {
@@ -132,30 +132,30 @@ const runComponent = async (cwd, workspace, framework) => {
         message: prompts.isMonorepo,
         options: [
           { value: true, label: prompts.yes },
-          { value: false, label: prompts.no }
+          { value: false, label: prompts.no },
         ],
-        initialValue: false
-      })
+        initialValue: false,
+      }),
     );
 
     if (monorepo) {
       packageManager = await ask(
-        p.select({ message: prompts.packageManager, options: options(content.packageManagers) })
+        p.select({ message: prompts.packageManager, options: options(content.packageManagers) }),
       );
       dir = await ask(
         p.text({
           message: prompts.packagesDir,
           initialValue: defaults.packagesDir,
-          validate: validateDir(cwd)
-        })
+          validate: validateDir(cwd),
+        }),
       );
     } else {
       dir = await ask(
         p.text({
           message: prompts.componentsDir,
           initialValue: hasComponentsDir(cwd) ? defaults.componentsDir : '',
-          validate: validateDir(cwd)
-        })
+          validate: validateDir(cwd),
+        }),
       );
     }
     dir = dir.trim();
@@ -182,7 +182,7 @@ const runComponent = async (cwd, workspace, framework) => {
   if (asPackage) await install(cwd, packageManager);
 
   p.outro(
-    fill(messages.summary, { framework: content.frameworks[framework].label, name: toPascal(name), path: location })
+    fill(messages.summary, { framework: content.frameworks[framework].label, name: toPascal(name), path: location }),
   );
 };
 
@@ -190,9 +190,7 @@ export const main = async (cwd = process.cwd()) => {
   p.intro(content.intro);
 
   const workspace = detectWorkspace(cwd);
-  const framework = await ask(
-    p.select({ message: prompts.framework, options: options(content.frameworks) })
-  );
+  const framework = await ask(p.select({ message: prompts.framework, options: options(content.frameworks) }));
 
   if (content.frameworks[framework].workspace) await runReact(cwd, workspace);
   else await runComponent(cwd, workspace, framework);

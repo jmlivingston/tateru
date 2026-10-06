@@ -8,11 +8,10 @@ const templatesRoot = fileURLToPath(new URL('../templates/', import.meta.url));
 
 const listFiles = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory() ? listFiles(join(dir, entry.name)) : [join(dir, entry.name)]
+    entry.isDirectory() ? listFiles(join(dir, entry.name)) : [join(dir, entry.name)],
   );
 
-export const readTemplate = (name, file, vars) =>
-  fill(readFileSync(join(templatesRoot, name, file), 'utf8'), vars);
+export const readTemplate = (name, file, vars) => fill(readFileSync(join(templatesRoot, name, file), 'utf8'), vars);
 
 // Files ending in .tpl are rendered with {{vars}} and lose the suffix; the rest, such as Nx generator templates, are copied as-is.
 export const copyTemplate = ({ names, target, vars }) => {

@@ -1,0 +1,6 @@
+set -e
+[ "$1" = "rebase" ] || exit 0
+read -r old_sha _ < /dev/stdin
+if git diff --name-only "$old_sha" HEAD | grep --quiet '^package-lock\.json$'; then
+  npm ci
+fi

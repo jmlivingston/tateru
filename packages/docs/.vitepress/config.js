@@ -7,5 +7,15 @@ export default defineConfig({
   ...content,
   base: '/tateru/',
   cleanUrls: false,
-  lastUpdated: true
+  lastUpdated: true,
+  vite: {
+    server: {
+      port: 3000,
+      strictPort: true,
+    },
+    preview: {
+      port: 3000,
+      strictPort: true,
+    },
+  },
 });

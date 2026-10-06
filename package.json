@@ -2,6 +2,7 @@
   "name": "@tateru/root",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Tateru workspace",
   "bin": {
     "tateru": "./packages/cli/bin/index.js"
@@ -11,10 +12,22 @@
   ],
   "scripts": {
     "docs": "nx run @tateru/docs:dev",
-    "test": "nx run-many -t test"
+    "test": "nx run-many -t test",
+    "lint": "nx run-many -t lint",
+    "format": "nx run-many -t format",
+    "format:check": "nx run-many -t format-check",
+    "prepare": "husky"
   },
   "license": "ISC",
+  "nx": {
+    "includedScripts": []
+  },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.9.9",
     "nx": "^23.2.1"
   },
   "dependencies": {

@@ -7,7 +7,7 @@ const SECTION = /^[ \t]*\{\{([#^])(\w+)\}\}[ \t]*\r?\n([\s\S]*?)^[ \t]*\{\{\/\2\
 
 const renderSections = (text, vars) =>
   text.replace(SECTION, (match, kind, key, body) =>
-    Boolean(vars[key]) === (kind === '#') ? renderSections(body, vars) : ''
+    Boolean(vars[key]) === (kind === '#') ? renderSections(body, vars) : '',
   );
 
 export const fill = (text, vars = {}) =>

@@ -71,7 +71,8 @@ const scanLanguages = (dir, found = new Set()) => {
   if (!isDirectory(dir)) return found;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!entry.name.startsWith('.') && !SKIPPED_DIRECTORIES.has(entry.name)) scanLanguages(join(dir, entry.name), found);
+      if (!entry.name.startsWith('.') && !SKIPPED_DIRECTORIES.has(entry.name))
+        scanLanguages(join(dir, entry.name), found);
     } else if (!entry.name.endsWith('.d.ts') && SOURCE_LANGUAGES[extname(entry.name)]) {
       found.add(SOURCE_LANGUAGES[extname(entry.name)]);
     }

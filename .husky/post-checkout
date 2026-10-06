@@ -1,0 +1,6 @@
+set -e
+[ "$3" = "1" ] || exit 0
+[ "$1" != "$2" ] || exit 0
+if git diff --name-only "$1" "$2" | grep --quiet '^package-lock\.json$'; then
+  npm ci
+fi

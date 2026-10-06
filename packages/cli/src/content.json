@@ -79,31 +79,19 @@
   "packageManagers": {
     "npm": {
       "label": "npm",
-      "install": [
-        "npm",
-        "install"
-      ]
+      "install": ["npm", "install"]
     },
     "yarn": {
       "label": "yarn",
-      "install": [
-        "yarn",
-        "install"
-      ]
+      "install": ["yarn", "install"]
     },
     "pnpm": {
       "label": "pnpm",
-      "install": [
-        "pnpm",
-        "install"
-      ]
+      "install": ["pnpm", "install"]
     },
     "bun": {
       "label": "bun",
-      "install": [
-        "bun",
-        "install"
-      ]
+      "install": ["bun", "install"]
     }
   },
   "react": {

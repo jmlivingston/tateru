@@ -1,0 +1,4 @@
+set -e
+npx nx run tateru:lint
+npx nx run tateru:format-check
+npx nx run-many -t test

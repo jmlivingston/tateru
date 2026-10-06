@@ -70,7 +70,7 @@ export const run = (command, args, { cwd, env } = {}) =>
     const child = spawn(command, args, {
       cwd,
       env: { ...process.env, ...env },
-      shell: process.platform === 'win32'
+      shell: process.platform === 'win32',
     });
     let output = '';
     child.stdout.on('data', (chunk) => (output += chunk));
@@ -92,7 +92,7 @@ const mergePackageJson = (template, existing) => ({
   name: template.name,
   type: template.type,
   generators: template.generators,
-  ...Object.fromEntries(MERGED_KEYS.map((key) => [key, { ...template[key], ...existing[key] }]))
+  ...Object.fromEntries(MERGED_KEYS.map((key) => [key, { ...template[key], ...existing[key] }])),
 });
 
 const workspaceNames = (cwd, existingName) => {
@@ -116,13 +116,13 @@ export const scaffoldReactWorkspace = ({ cwd, features }) => {
   const { written, skipped } = copyTemplate({
     names: [base, ...enabled.map((feature) => `${content.react.template}/features/${feature}`)],
     target: cwd,
-    vars
+    vars,
   });
 
   return {
     rootName: vars.rootName,
     written: ['package.json', ...written],
-    skipped: skipped.filter((file) => file !== 'package.json')
+    skipped: skipped.filter((file) => file !== 'package.json'),
   };
 };
 
@@ -130,13 +130,13 @@ export const generateArgs = ({ rootName, name, language }) => [
   'generate',
   `${rootName}:component`,
   `--name=${toPascal(name)}`,
-  `--language=${language}`
+  `--language=${language}`,
 ];
 
 export const generateReactComponent = ({ cwd, rootName, name, language }) =>
   run(join(cwd, content.react.nxBinary), generateArgs({ rootName, name, language }), {
     cwd,
-    env: { NX_DAEMON: 'false' }
+    env: { NX_DAEMON: 'false' },
   });
 
 export const readRootName = (cwd) => JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8')).name;
