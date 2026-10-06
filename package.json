@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Tateru workspace",
+  "bin": {
+    "tateru": "./packages/cli/bin/index.js"
+  },
   "workspaces": [
     "packages/*"
   ],
@@ -12,5 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "nx": "^23.2.1"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.8.1"
   }
 }
