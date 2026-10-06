@@ -16,7 +16,9 @@
 {{#eslint}}
     "lint": "nx run-many -t lint --projects",
 {{/eslint}}
+{{#stylelint}}
     "lint-style": "stylelint --fix \"**/*.css\"",
+{{/stylelint}}
 {{#prettier}}
     "format": "nx run-many -t format --projects",
 {{/prettier}}
@@ -39,6 +41,10 @@
     "globals": "^17.12.0",
     "typescript-eslint": "^8.71.1",
 {{/eslint}}
+{{#stylelint}}
+    "stylelint": "^17.15.0",
+    "stylelint-config-standard": "^40.0.0",
+{{/stylelint}}
 {{#storybook}}
     "@nx/storybook": "^23.2.1",
     "@storybook/addon-docs": "^10.6.0",
@@ -60,8 +66,6 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "nx": "^23.2.1",
-    "stylelint": "^17.15.0",
-    "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.9.3",
     "vite": "^8.3.1"
   },

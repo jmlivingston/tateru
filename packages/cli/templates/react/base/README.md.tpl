@@ -18,6 +18,9 @@ npm run build                               # output in dist/packages
 {{#eslint}}
 npm run lint
 {{/eslint}}
+{{#stylelint}}
+npm run lint-style
+{{/stylelint}}
 {{#prettier}}
 npm run format
 {{/prettier}}
@@ -34,4 +37,4 @@ tateru.json        optional tooling chosen when the workspace was created
 
 Packages are discovered from `packages/`, so new components need no extra wiring. To publish one, run `npm publish` inside `dist/packages/<Name>`.
 
-`tateru.json` records which of Prettier, ESLint, Storybook and unit tests this workspace uses, so the generators only create matching files.
+`tateru.json` records which of Prettier, ESLint, Stylelint, Storybook and unit tests this workspace uses, so the generators only create matching files.

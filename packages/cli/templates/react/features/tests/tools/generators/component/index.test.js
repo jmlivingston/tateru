@@ -73,7 +73,7 @@ describe('component generator', () => {
     tree.write('package.json', JSON.stringify({ name: '@example/root' }));
     tree.write(
       'tateru.json',
-      JSON.stringify({ features: { prettier: false, eslint: false, storybook: false, tests: false } }),
+      JSON.stringify({ features: { prettier: false, eslint: false, stylelint: false, storybook: false, tests: false } }),
     );
     componentGenerator(tree, { name: 'MyThing' });
 
@@ -93,7 +93,7 @@ describe('component generator', () => {
         'packages/MyThing/vite.config.mjs',
       ].sort(),
     );
-    expect(Object.keys(JSON.parse(tree.read('packages/MyThing/project.json', 'utf-8')).targets)).toEqual(['lint-style']);
+    expect(Object.keys(JSON.parse(tree.read('packages/MyThing/project.json', 'utf-8')).targets)).toEqual([]);
   });
 
   it('rejects an unknown language', () => {

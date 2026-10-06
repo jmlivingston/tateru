@@ -257,6 +257,9 @@ test('every feature combination renders valid files for exactly the chosen tools
     assert.equal(existsSync(join(dir, 'eslint.config.js')), features.eslint);
     assert.equal('eslint' in pkg.devDependencies, features.eslint);
     assert.equal('lint' in project.targets, features.eslint);
+    assert.equal(existsSync(join(dir, 'stylelint.config.js')), features.stylelint);
+    assert.equal('stylelint' in pkg.devDependencies, features.stylelint);
+    assert.equal('lint-style' in pkg.scripts, features.stylelint);
     assert.equal(existsSync(join(dir, 'packages/Storybook')), features.storybook);
     assert.equal('storybook' in pkg.devDependencies, features.storybook);
     assert.equal(nx.plugins.some(({ plugin }) => plugin === '@nx/storybook/plugin'), features.storybook);

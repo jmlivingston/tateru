@@ -1,6 +1,6 @@
 import { readJson } from '@nx/devkit';
 
-export const FEATURES = ['prettier', 'eslint', 'storybook', 'tests'];
+export const FEATURES = ['prettier', 'eslint', 'stylelint', 'storybook', 'tests'];
 
 // Workspaces without tateru.json get every feature.
 export function readFeatures(tree) {

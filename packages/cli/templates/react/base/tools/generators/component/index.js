@@ -2,6 +2,7 @@ import { generateFiles, names, OverwriteStrategy, readJson } from '@nx/devkit';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { FEATURES, readFeatures } from '../features.js';
+import { renderTargets } from '../targets.js';
 
 const LANGUAGES = ['javascript', 'typescript'];
 
@@ -35,6 +36,7 @@ export default function componentGenerator(tree, { name, language = 'javascript'
     ...enabled.flatMap((feature) => [`features/${feature}/files`, `features/${feature}/languages/${language}`]),
   ];
   const substitutions = { ...names(name), ...features, npmScope: getNpmScope(tree), tmpl: '' };
+  substitutions.targets = renderTargets(substitutions);
   const options = { overwriteStrategy: OverwriteStrategy.ThrowIfExisting };
 
   for (const folder of folders) {

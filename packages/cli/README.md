@@ -12,7 +12,7 @@ npx @tateru/cli
 2. **React** creates an [Nx](https://nx.dev) component library (Vite, Storybook, Vitest, ESLint) and generates the first component with the workspace's own Nx generator:
    - package manager is detected from the project, or asked for;
    - TypeScript or JavaScript is detected from the source files in `packages/` (or, in a new workspace, from `tsconfig.json`, `jsconfig.json` or a `typescript` dependency) and asked for when it can't be determined, e.g. in an empty directory;
-   - you choose whether to add Prettier, ESLint, Storybook and unit tests (Vitest and Testing Library); the choice is saved in `tateru.json` so later `create-component` runs only generate matching files (stories, tests, and `format`, `lint` and `test` targets);
+   - you choose whether to add Prettier, ESLint, Stylelint, Storybook and unit tests (Vitest and Testing Library); the choice is saved in `tateru.json` so later `create-component` runs only generate matching files (stories, tests, and `format`, `lint`, `lint-style` and `test` targets);
    - existing files are never overwritten, and an existing `package.json` is merged (it becomes `"type": "module"` and its name is scoped, e.g. `@my-app/root`);
    - run it again in the workspace to add more components, or use `npm run create-component -- --name=MyThing`.
 3. **Angular, Svelte and Vue** write a barebones component plus a same-named CSS file:

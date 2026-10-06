@@ -1,6 +1,7 @@
 import { generateFiles, names, OverwriteStrategy, readJson } from '@nx/devkit';
 import { fileURLToPath } from 'url';
 import { readFeatures } from '../features.js';
+import { renderTargets } from '../targets.js';
 
 function getNpmScope(tree) {
   const packageName = readJson(tree, 'package.json').name;
@@ -21,11 +22,10 @@ export default function cssGenerator(tree, { name }) {
     throw new Error(`CSS package ${name} already exists`);
   }
 
-  generateFiles(
-    tree,
-    fileURLToPath(new URL('./files', import.meta.url)),
-    packageRoot,
-    { ...names(name), ...readFeatures(tree), npmScope: getNpmScope(tree), tmpl: '' },
-    { overwriteStrategy: OverwriteStrategy.ThrowIfExisting },
-  );
+  const substitutions = { ...names(name), ...readFeatures(tree), npmScope: getNpmScope(tree), tmpl: '' };
+  substitutions.targets = renderTargets({ ...substitutions, tests: false });
+
+  generateFiles(tree, fileURLToPath(new URL('./files', import.meta.url)), packageRoot, substitutions, {
+    overwriteStrategy: OverwriteStrategy.ThrowIfExisting,
+  });
 }
