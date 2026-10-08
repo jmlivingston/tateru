@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="建">
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="#B3272D" />
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="#7a1a1d" stroke-width="1.5" />
+  <text
+    x="32"
+    y="34"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', 'Meiryo', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+    font-size="42"
+    font-weight="700"
+    fill="#f5ede1"
+  >建</text>
+</svg>

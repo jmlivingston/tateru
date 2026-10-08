@@ -1,6 +1,6 @@
 import { readJson } from '@nx/devkit';
 
-export const FEATURES = ['prettier', 'eslint', 'stylelint', 'tests'];
+export const FEATURES = ['prettier', 'eslint', 'stylelint', 'storybook', 'tests'];
 
 export function readFeatures(tree) {
   const configured = tree.exists('tateru.json') ? (readJson(tree, 'tateru.json').features ?? {}) : {};

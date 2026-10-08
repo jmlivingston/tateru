@@ -4,7 +4,7 @@
     "prettier": {{prettier}},
     "eslint": {{eslint}},
     "stylelint": {{stylelint}},
-    "storybook": false,
+    "storybook": {{storybook}},
     "tests": {{tests}}
   }
 }

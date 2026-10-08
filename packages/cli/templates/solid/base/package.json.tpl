@@ -6,6 +6,9 @@
   "workspaces": ["packages/*"],
   "generators": "./tools/generators/generators.json",
   "scripts": {
+{{#storybook}}
+    "start": "nx run storybook:start --",
+{{/storybook}}
     "build": "nx run-many -t build",
 {{#tests}}
     "test": "nx run-many -t test",
@@ -40,6 +43,12 @@
     "stylelint": "^17.15.0",
     "stylelint-config-standard": "^40.0.0",
 {{/stylelint}}
+{{#storybook}}
+    "@nx/storybook": "^23.2.1",
+    "@storybook/addon-docs": "^10.6.0",
+    "storybook": "^10.6.0",
+    "storybook-solidjs-vite": "^10.7.2",
+{{/storybook}}
 {{#tests}}
     "@solidjs/router": "^1.0.0",
     "@solidjs/testing-library": "^0.8.10",

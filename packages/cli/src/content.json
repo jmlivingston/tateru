@@ -66,8 +66,7 @@
     "solid": {
       "label": "Solid",
       "workspace": true,
-      "dependency": "solid-js",
-      "unsupportedFeatures": ["storybook"]
+      "dependency": "solid-js"
     }
   },
   "packageManagers": {

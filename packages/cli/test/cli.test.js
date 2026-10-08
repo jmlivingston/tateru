@@ -243,10 +243,9 @@ test('detects TypeScript and JavaScript in Vue and Svelte scripts', () => {
   }
 });
 
-test('Solid excludes Storybook and Angular requires TypeScript', () => {
-  assert.ok(!supportedFeatures('solid').includes('storybook'));
+test('Solid supports Storybook and Angular requires TypeScript', () => {
+  assert.ok(supportedFeatures('solid').includes('storybook'));
   assert.equal(content.frameworks.angular.language, 'typescript');
-  assert.throws(() => scaffoldWorkspace({ cwd: tmp(), framework: 'solid', features: allFeatures }), /does not support/);
 });
 
 test('pnpm scaffolding creates a packages workspace and records the framework', () => {
